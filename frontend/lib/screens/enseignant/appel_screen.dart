@@ -14,7 +14,6 @@ class AppelScreen extends StatefulWidget {
 
 class _AppelScreenState extends State<AppelScreen> {
   List<Etudiant> _etudiants = [];
-  // Map pour stocker le statut de chaque étudiant (true = présent)
   final Map<int, bool> _presences = {};
   bool _loading = true;
   bool _submitting = false;
@@ -26,11 +25,9 @@ class _AppelScreenState extends State<AppelScreen> {
   }
 
   Future<void> _loadEtudiants() async {
-    // Charger les étudiants de la classe concernée
     final data = await ApiService.getEtudiants(classeId: widget.seance.classeId);
     setState(() {
       _etudiants = data.map<Etudiant>((json) => Etudiant.fromJson(json)).toList();
-      // Par défaut, tous les étudiants sont marqués présents (coché)
       for (var e in _etudiants) {
         _presences[e.id] = true;
       }
@@ -40,8 +37,6 @@ class _AppelScreenState extends State<AppelScreen> {
 
   Future<void> _validerAppel() async {
     setState(() => _submitting = true);
-
-    // Construire la liste des absences à envoyer
     final absences = _etudiants.map((e) {
       return {
         'etudiant_id': e.id,
@@ -88,7 +83,6 @@ class _AppelScreenState extends State<AppelScreen> {
               ? const Center(child: Text('Aucun étudiant dans cette classe'))
               : Column(
                   children: [
-                    // Info séance en haut
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -103,7 +97,6 @@ class _AppelScreenState extends State<AppelScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    // Liste des étudiants avec CheckboxListTile
                     Expanded(
                       child: ListView.builder(
                         itemCount: _etudiants.length,
@@ -124,7 +117,6 @@ class _AppelScreenState extends State<AppelScreen> {
                         },
                       ),
                     ),
-                    // Bouton valider
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: SizedBox(

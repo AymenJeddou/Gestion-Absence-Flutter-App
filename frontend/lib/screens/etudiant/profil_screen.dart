@@ -52,7 +52,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Avatar avec initiales
                     CircleAvatar(
                       radius: 40,
                       child: Text(
@@ -61,13 +60,11 @@ class _ProfilScreenState extends State<ProfilScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Nom complet
                     Text(
                       '${profil['nom']} ${profil['prenom']}',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
-                    // Email
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -77,7 +74,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Classe
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

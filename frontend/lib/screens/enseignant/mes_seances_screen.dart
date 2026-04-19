@@ -60,7 +60,6 @@ class _MesSeancesScreenState extends State<MesSeancesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Matière en titre
                     Text(
                       s.matiere,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -68,13 +67,10 @@ class _MesSeancesScreenState extends State<MesSeancesScreen> {
                           ),
                     ),
                     const SizedBox(height: 4),
-                    // Classe
                     Text('Classe : ${s.classe}'),
-                    // Date et heure
                     Text('Date : ${s.dateSeance}'),
                     Text('Horaire : ${s.heureDebut} - ${s.heureFin}'),
                     const SizedBox(height: 8),
-                    // Bouton faire l'appel
                     Align(
                       alignment: Alignment.centerRight,
                       child: FilledButton.icon(

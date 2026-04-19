@@ -18,8 +18,6 @@ class Utilisateur {
     this.etudiantId,
     this.classeId,
   });
-
-  // Créer un Utilisateur à partir du JSON retourné par l'API
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
     return Utilisateur(
       id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),

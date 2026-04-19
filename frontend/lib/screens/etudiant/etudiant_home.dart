@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../main.dart';
 import '../login_screen.dart';
 import 'profil_screen.dart';
 import 'absences_screen.dart';
@@ -14,10 +15,7 @@ class EtudiantHome extends StatefulWidget {
 class _EtudiantHomeState extends State<EtudiantHome> {
   int _currentIndex = 0;
 
-  final _pages = const [
-    ProfilScreen(),
-    AbsencesScreen(),
-  ];
+  final _pages = const [ProfilScreen(), AbsencesScreen()];
 
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,6 +33,20 @@ class _EtudiantHomeState extends State<EtudiantHome> {
       appBar: AppBar(
         title: const Text('Espace Étudiant'),
         actions: [
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: ThemeController.themeMode,
+            builder: (context, mode, _) {
+              return IconButton(
+                icon: Icon(
+                  mode == ThemeMode.dark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                ),
+                tooltip: 'Changer le thème',
+                onPressed: ThemeController.toggleTheme,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion',

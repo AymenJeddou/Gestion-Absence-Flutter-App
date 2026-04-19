@@ -24,7 +24,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
   }
 
   void _showAddDialog() async {
-    // Charger les données nécessaires pour les dropdowns
     final enseignants = await ApiService.getEnseignants();
     final classes = await ApiService.getClasses();
     final matieres = await ApiService.getMatieres();
@@ -48,7 +47,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Dropdown enseignant
                   DropdownButtonFormField<String>(
                     initialValue: selectedEnseignantId,
                     decoration: const InputDecoration(labelText: 'Enseignant'),
@@ -62,7 +60,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
                       setDialogState(() => selectedEnseignantId = val);
                     },
                   ),
-                  // Dropdown classe
                   DropdownButtonFormField<String>(
                     initialValue: selectedClasseId,
                     decoration: const InputDecoration(labelText: 'Classe'),
@@ -76,7 +73,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
                       setDialogState(() => selectedClasseId = val);
                     },
                   ),
-                  // Dropdown matière
                   DropdownButtonFormField<String>(
                     initialValue: selectedMatiereId,
                     decoration: const InputDecoration(labelText: 'Matière'),
@@ -91,7 +87,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  // Date
                   TextField(
                     controller: dateCtrl,
                     decoration: const InputDecoration(
@@ -112,7 +107,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
                     },
                     readOnly: true,
                   ),
-                  // Heure début
                   TextField(
                     controller: debutCtrl,
                     decoration: const InputDecoration(
@@ -131,7 +125,6 @@ class _SeancesScreenState extends State<SeancesScreen> {
                     },
                     readOnly: true,
                   ),
-                  // Heure fin
                   TextField(
                     controller: finCtrl,
                     decoration: const InputDecoration(

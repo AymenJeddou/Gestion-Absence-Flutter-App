@@ -43,14 +43,11 @@ class _AbsencesScreenState extends State<AbsencesScreen> {
         if (absences.isEmpty) {
           return const Center(child: Text('Aucune absence enregistrée'));
         }
-
-        // Compter le total d'absences
         final totalAbsent =
             absences.where((a) => a.statut == 'absent').length;
 
         return Column(
           children: [
-            // Total d'absences en haut
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -67,7 +64,6 @@ class _AbsencesScreenState extends State<AbsencesScreen> {
                 textAlign: TextAlign.center,
               ),
             ),
-            // Liste des absences
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(8),

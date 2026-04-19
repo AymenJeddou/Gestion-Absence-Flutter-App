@@ -10,6 +10,8 @@ class EnseignantsScreen extends StatefulWidget {
 
 class _EnseignantsScreenState extends State<EnseignantsScreen> {
   late Future<List<dynamic>> _futureEnseignants;
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -21,6 +23,12 @@ class _EnseignantsScreenState extends State<EnseignantsScreen> {
     setState(() {
       _futureEnseignants = ApiService.getEnseignants();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   void _showAddDialog() {
@@ -68,8 +76,10 @@ class _EnseignantsScreenState extends State<EnseignantsScreen> {
           ),
           FilledButton(
             onPressed: () async {
-              if (nomCtrl.text.isEmpty || prenomCtrl.text.isEmpty ||
-                  emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
+              if (nomCtrl.text.isEmpty ||
+                  prenomCtrl.text.isEmpty ||
+                  emailCtrl.text.isEmpty ||
+                  passwordCtrl.text.isEmpty) {
                 return;
               }
               await ApiService.addEnseignant({
@@ -160,55 +170,109 @@ class _EnseignantsScreenState extends State<EnseignantsScreen> {
           }
 
           final enseignants = snapshot.data ?? [];
+          final filteredEnseignants = enseignants.where((e) {
+            if (_searchQuery.trim().isEmpty) return true;
+            final q = _searchQuery.toLowerCase();
+            final text =
+                '${e['nom'] ?? ''} ${e['prenom'] ?? ''} ${e['email'] ?? ''} ${e['specialite'] ?? ''}'
+                    .toLowerCase();
+            return text.contains(q);
+          }).toList();
 
           if (enseignants.isEmpty) {
             return const Center(child: Text('Aucun enseignant'));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: enseignants.length,
-            itemBuilder: (context, index) {
-              final e = enseignants[index];
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(e['nom'][0].toUpperCase()),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un enseignant...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  title: Text('${e['nom']} ${e['prenom']}'),
-                  subtitle: Text(e['specialite'] ?? 'Pas de spécialité'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Confirmer'),
-                          content: const Text('Supprimer cet enseignant ?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Non'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text('Oui'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        await ApiService.deleteEnseignant(
-                          int.parse(e['id'].toString()),
-                        );
-                        _refresh();
-                      }
-                    },
-                  ),
-                  onTap: () => _showEditDialog(e),
                 ),
-              );
-            },
+              ),
+              Expanded(
+                child: filteredEnseignants.isEmpty
+                    ? const Center(child: Text('Aucun enseignant trouvé'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: filteredEnseignants.length,
+                        itemBuilder: (context, index) {
+                          final e = filteredEnseignants[index];
+                          return Card(
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(e['nom'][0].toUpperCase()),
+                              ),
+                              title: Text('${e['nom']} ${e['prenom']}'),
+                              subtitle: Text(
+                                e['specialite'] ?? 'Pas de spécialité',
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Confirmer'),
+                                      content: const Text(
+                                        'Supprimer cet enseignant ?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text('Non'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, true),
+                                          child: const Text('Oui'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await ApiService.deleteEnseignant(
+                                      int.parse(e['id'].toString()),
+                                    );
+                                    _refresh();
+                                  }
+                                },
+                              ),
+                              onTap: () => _showEditDialog(e),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../main.dart';
 import '../login_screen.dart';
 import 'etudiants_screen.dart';
 import 'enseignants_screen.dart';
@@ -39,6 +40,20 @@ class _AdminHomeState extends State<AdminHome> {
       appBar: AppBar(
         title: const Text('Administration'),
         actions: [
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: ThemeController.themeMode,
+            builder: (context, mode, _) {
+              return IconButton(
+                icon: Icon(
+                  mode == ThemeMode.dark
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                ),
+                tooltip: 'Changer le thème',
+                onPressed: ThemeController.toggleTheme,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion',
@@ -47,7 +62,6 @@ class _AdminHomeState extends State<AdminHome> {
         ],
       ),
       body: _pages[_currentIndex],
-      // BottomNavigationBar avec 4 sections comme demandé
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (i) => setState(() => _currentIndex = i),

@@ -11,6 +11,8 @@ class EtudiantsScreen extends StatefulWidget {
 class _EtudiantsScreenState extends State<EtudiantsScreen> {
   late Future<List<dynamic>> _futureEtudiants;
   List<dynamic> _classes = [];
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -29,7 +31,11 @@ class _EtudiantsScreenState extends State<EtudiantsScreen> {
     _classes = await ApiService.getClasses();
   }
 
-  // Formulaire d'ajout d'un étudiant
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
   void _showAddDialog() {
     final nomCtrl = TextEditingController();
     final prenomCtrl = TextEditingController();
@@ -89,8 +95,10 @@ class _EtudiantsScreenState extends State<EtudiantsScreen> {
           ),
           FilledButton(
             onPressed: () async {
-              if (nomCtrl.text.isEmpty || prenomCtrl.text.isEmpty ||
-                  emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty ||
+              if (nomCtrl.text.isEmpty ||
+                  prenomCtrl.text.isEmpty ||
+                  emailCtrl.text.isEmpty ||
+                  passwordCtrl.text.isEmpty ||
                   selectedClasseId == null) {
                 return;
               }
@@ -110,8 +118,6 @@ class _EtudiantsScreenState extends State<EtudiantsScreen> {
       ),
     );
   }
-
-  // Formulaire de modification
   void _showEditDialog(Map<String, dynamic> etudiant) {
     final nomCtrl = TextEditingController(text: etudiant['nom']);
     final prenomCtrl = TextEditingController(text: etudiant['prenom']);
@@ -197,57 +203,107 @@ class _EtudiantsScreenState extends State<EtudiantsScreen> {
           }
 
           final etudiants = snapshot.data ?? [];
+          final filteredEtudiants = etudiants.where((e) {
+            if (_searchQuery.trim().isEmpty) return true;
+            final q = _searchQuery.toLowerCase();
+            final text =
+                '${e['nom'] ?? ''} ${e['prenom'] ?? ''} ${e['email'] ?? ''} ${e['classe'] ?? ''}'
+                    .toLowerCase();
+            return text.contains(q);
+          }).toList();
 
           if (etudiants.isEmpty) {
             return const Center(child: Text('Aucun étudiant'));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: etudiants.length,
-            itemBuilder: (context, index) {
-              final e = etudiants[index];
-              return Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      e['nom'][0].toUpperCase(),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un étudiant...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() {
+                                _searchQuery = '';
+                              });
+                            },
+                          ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  title: Text('${e['nom']} ${e['prenom']}'),
-                  subtitle: Text(e['classe'] ?? ''),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Confirmer'),
-                          content: const Text('Supprimer cet étudiant ?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Non'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text('Oui'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        await ApiService.deleteEtudiant(
-                          int.parse(e['id'].toString()),
-                        );
-                        _refresh();
-                      }
-                    },
-                  ),
-                  onTap: () => _showEditDialog(e),
                 ),
-              );
-            },
+              ),
+              Expanded(
+                child: filteredEtudiants.isEmpty
+                    ? const Center(child: Text('Aucun étudiant trouvé'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: filteredEtudiants.length,
+                        itemBuilder: (context, index) {
+                          final e = filteredEtudiants[index];
+                          return Card(
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                child: Text(e['nom'][0].toUpperCase()),
+                              ),
+                              title: Text('${e['nom']} ${e['prenom']}'),
+                              subtitle: Text(e['classe'] ?? ''),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Confirmer'),
+                                      content: const Text(
+                                        'Supprimer cet étudiant ?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, false),
+                                          child: const Text('Non'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(ctx, true),
+                                          child: const Text('Oui'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await ApiService.deleteEtudiant(
+                                      int.parse(e['id'].toString()),
+                                    );
+                                    _refresh();
+                                  }
+                                },
+                              ),
+                              onTap: () => _showEditDialog(e),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),

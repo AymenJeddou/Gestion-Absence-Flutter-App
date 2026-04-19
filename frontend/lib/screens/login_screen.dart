@@ -119,8 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // ── Moitié basse blanche avec formulaire ─────────────────────
           Expanded(
             flex: 3,
             child: Container(
@@ -130,7 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Email
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -156,8 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Mot de passe
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscure,
@@ -192,8 +187,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
-
-                  // Bouton
                   SizedBox(
                     width: double.infinity,
                     height: 50,

@@ -5,7 +5,33 @@ import 'screens/admin/admin_home.dart';
 import 'screens/enseignant/enseignant_home.dart';
 import 'screens/etudiant/etudiant_home.dart';
 
-void main() {
+class ThemeController {
+  static const String _themeKey = 'theme_mode';
+  static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(
+    ThemeMode.light,
+  );
+
+  static Future<void> loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString(_themeKey);
+    if (savedTheme == 'dark') {
+      themeMode.value = ThemeMode.dark;
+    } else {
+      themeMode.value = ThemeMode.light;
+    }
+  }
+
+  static Future<void> toggleTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = themeMode.value == ThemeMode.dark;
+    themeMode.value = isDark ? ThemeMode.light : ThemeMode.dark;
+    await prefs.setString(_themeKey, isDark ? 'light' : 'dark');
+  }
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeController.loadTheme();
   runApp(const GestAbsenceApp());
 }
 
@@ -14,40 +40,57 @@ class GestAbsenceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'GestAbsence',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF1565C0), // bleu foncé
-        brightness: Brightness.light,
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1565C0),
-            foregroundColor: Colors.white,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.themeMode,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'GestAbsence',
+          debugShowCheckedModeBanner: false,
+          themeMode: mode,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xFF1565C0),
+            brightness: Brightness.light,
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1565C0),
+                foregroundColor: Colors.white,
+              ),
+            ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF1565C0),
+                foregroundColor: Colors.white,
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF1565C0),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1565C0),
+                side: const BorderSide(color: Color(0xFF1565C0)),
+              ),
+            ),
+            navigationBarTheme: const NavigationBarThemeData(
+              backgroundColor: Color(0xFF1565C0),
+              indicatorColor: Colors.white24,
+            ),
           ),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF1565C0),
-            foregroundColor: Colors.white,
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: const Color(0xFF1565C0),
+            brightness: Brightness.dark,
+            navigationBarTheme: const NavigationBarThemeData(
+              backgroundColor: Color(0xFF0D47A1),
+              indicatorColor: Colors.white24,
+            ),
           ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(foregroundColor: const Color(0xFF1565C0)),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF1565C0),
-            side: const BorderSide(color: Color(0xFF1565C0)),
-          ),
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF1565C0),
-          indicatorColor: Colors.white24,
-        ),
-      ),
-      home: const CheckAuth(),
+          home: const CheckAuth(),
+        );
+      },
     );
   }
 }
@@ -74,7 +117,6 @@ class _CheckAuthState extends State<CheckAuth> {
     if (!mounted) return;
 
     if (role != null && userId != null) {
-      // L'utilisateur est déjà connecté, rediriger selon le rôle
       Widget home;
       switch (role) {
         case 'admin':
@@ -94,7 +136,6 @@ class _CheckAuthState extends State<CheckAuth> {
         MaterialPageRoute(builder: (_) => home),
       );
     } else {
-      // Pas connecté, afficher l'écran de connexion
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -104,7 +145,6 @@ class _CheckAuthState extends State<CheckAuth> {
 
   @override
   Widget build(BuildContext context) {
-    // Écran de chargement pendant la vérification
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
