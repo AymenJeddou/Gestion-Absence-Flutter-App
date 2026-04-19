@@ -100,11 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.cast_for_education_rounded,
-                    size: 64,
-                    color: Colors.white,
-                  ),
+                  Icon(Icons.menu_book_rounded, size: 64, color: Colors.white),
                   SizedBox(height: 14),
                   Text(
                     'EduTrack',
