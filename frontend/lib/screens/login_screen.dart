@@ -92,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // ── Moitié haute colorée ──────────────────────────────────────
           Expanded(
             flex: 2,
             child: Container(
@@ -101,7 +100,11 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.school_rounded, size: 64, color: Colors.white),
+                  Icon(
+                    Icons.cast_for_education_rounded,
+                    size: 64,
+                    color: Colors.white,
+                  ),
                   SizedBox(height: 14),
                   Text(
                     'EduTrack',
