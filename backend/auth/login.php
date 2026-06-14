@@ -11,18 +11,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    $email = $conn->real_escape_string($data->email);
-    $password = $conn->real_escape_string($data->password);
+    $email = trim($data->email);
+    $password = trim($data->password);
 
-    $sql = "SELECT * FROM utilisateurs WHERE email='$email' AND password='$password'";
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare("SELECT id, nom, prenom, email, role FROM utilisateurs WHERE email = ? AND password = ? LIMIT 1");
+    if (!$stmt) {
+        echo json_encode(["success" => 0, "message" => "Erreur lors de la préparation de la requête"]);
+        exit();
+    }
+
+    $stmt->bind_param("ss", $email, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
         // Préparer la réponse avec les infos de base
         $response = [
-            "id" => (int)$user['id'],
+            "id" => (int) $user['id'],
             "nom" => $user['nom'],
             "prenom" => $user['prenom'],
             "email" => $user['email'],
@@ -34,14 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $res = $conn->query("SELECT id FROM enseignants WHERE utilisateur_id=" . $user['id']);
             if ($res->num_rows > 0) {
                 $row = $res->fetch_assoc();
-                $response['enseignant_id'] = (int)$row['id'];
+                $response['enseignant_id'] = (int) $row['id'];
             }
         } elseif ($user['role'] == 'etudiant') {
             $res = $conn->query("SELECT id, classe_id FROM etudiants WHERE utilisateur_id=" . $user['id']);
             if ($res->num_rows > 0) {
                 $row = $res->fetch_assoc();
-                $response['etudiant_id'] = (int)$row['id'];
-                $response['classe_id'] = (int)$row['classe_id'];
+                $response['etudiant_id'] = (int) $row['id'];
+                $response['classe_id'] = (int) $row['classe_id'];
             }
         }
 
@@ -55,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "message" => "Email ou mot de passe incorrect"
         ]);
     }
+
+    $stmt->close();
 } else {
     echo json_encode([
         "success" => 0,
