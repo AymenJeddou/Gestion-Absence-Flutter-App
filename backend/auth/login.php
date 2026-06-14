@@ -22,33 +22,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt->bind_param("ss", $email, $password);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->bind_result($userId, $nom, $prenom, $userEmail, $role);
 
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
+    if ($stmt->fetch()) {
 
         // Préparer la réponse avec les infos de base
         $response = [
-            "id" => (int) $user['id'],
-            "nom" => $user['nom'],
-            "prenom" => $user['prenom'],
-            "email" => $user['email'],
-            "role" => $user['role']
+            "id" => (int) $userId,
+            "nom" => $nom,
+            "prenom" => $prenom,
+            "email" => $userEmail,
+            "role" => $role
         ];
 
         // Ajouter l'ID spécifique au rôle (enseignant_id ou etudiant_id)
-        if ($user['role'] == 'enseignant') {
-            $res = $conn->query("SELECT id FROM enseignants WHERE utilisateur_id=" . $user['id']);
-            if ($res->num_rows > 0) {
-                $row = $res->fetch_assoc();
-                $response['enseignant_id'] = (int) $row['id'];
+        if ($role == 'enseignant') {
+            $res = $conn->prepare("SELECT id FROM enseignants WHERE utilisateur_id = ? LIMIT 1");
+            if ($res) {
+                $res->bind_param("i", $userId);
+                $res->execute();
+                $res->bind_result($enseignantId);
+                if ($res->fetch()) {
+                    $response['enseignant_id'] = (int) $enseignantId;
+                }
+                $res->close();
             }
-        } elseif ($user['role'] == 'etudiant') {
-            $res = $conn->query("SELECT id, classe_id FROM etudiants WHERE utilisateur_id=" . $user['id']);
-            if ($res->num_rows > 0) {
-                $row = $res->fetch_assoc();
-                $response['etudiant_id'] = (int) $row['id'];
-                $response['classe_id'] = (int) $row['classe_id'];
+        } elseif ($role == 'etudiant') {
+            $res = $conn->prepare("SELECT id, classe_id FROM etudiants WHERE utilisateur_id = ? LIMIT 1");
+            if ($res) {
+                $res->bind_param("i", $userId);
+                $res->execute();
+                $res->bind_result($etudiantId, $classeId);
+                if ($res->fetch()) {
+                    $response['etudiant_id'] = (int) $etudiantId;
+                    $response['classe_id'] = (int) $classeId;
+                }
+                $res->close();
             }
         }
 
